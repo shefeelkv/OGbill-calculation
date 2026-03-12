@@ -9,55 +9,24 @@ const EditNote = () => {
     const [loading, setLoading] = useState(true);
     const [title, setTitle] = useState('');
     const [items, setItems] = useState([]);
-    const [total, setTotal] = useState(0);
-
     useEffect(() => {
-        fetchNoteDetails();
-    }, [id]);
-
-    useEffect(() => {
-        const newTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
-        setTotal(newTotal);
-    }, [items]);
-
-    const fetchNoteDetails = async () => {
-        try {
-            const res = await api.get('/notes'); // Assuming we get all notes and filter, or we need a get single endpoint
-            // Wait, I didn't verify if GET /notes/:id exists. checking notes.js
-            // It DOES NOT exist in my previous implementation of notes.js.
-            // I need to add GET /notes/:id to backend first!
-            // For now let's implement the frontend assuming it will exist or I'll fix it.
-            // Actually, dashboard fetches all notes. I can filter from that state if I had it, but clean way is GET endpoint.
-            // I will add GET /notes/:id to backend in next step.
-
-            const allNotes = await api.get('/notes');
-            const note = allNotes.data.find(n => n.id === parseInt(id));
-
-            if (note) {
-                setTitle(note.title);
-                // Notes table doesn't have items in the list view usually?
-                // My notes.js GET / returns * from notes.
-                // Note items are in note_items table.
-                // I definitely need a GET /notes/:id endpoint that returns items too.
-                // Wait, let me check notes.js again.
-
+        const fetchNoteDetails = async () => {
+            try {
+                const detailRes = await api.get(`/notes/${id}`);
+                setTitle(detailRes.data.title);
+                setItems(detailRes.data.items);
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+                alert('Failed to fetch note details');
+                navigate('/dashboard');
             }
-            // Re-reading notes.js content from previous turns...
-            // It has GET / (all notes), DELETE /:id.
-            // It DOES NOT have GET /:id.
+        };
+        fetchNoteDetails();
+    }, [id, navigate]);
 
-            // I will implement this fetch to use a new endpoint I'll Create.
-            const detailRes = await api.get(`/notes/${id}`);
-            setTitle(detailRes.data.title);
-            setItems(detailRes.data.items);
-            setLoading(false);
+    const total = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
 
-        } catch (err) {
-            console.error(err);
-            alert('Failed to fetch note details');
-            navigate('/dashboard');
-        }
-    };
 
     const addItem = () => {
         setItems([...items, { item_name: '', price: 0 }]);

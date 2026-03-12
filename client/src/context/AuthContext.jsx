@@ -4,21 +4,22 @@ import axios from 'axios';
 
 export const AuthContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        const userData = localStorage.getItem('user');
+        return userData ? JSON.parse(userData) : null;
+    });
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-
-        if (token && userData) {
-            setUser(JSON.parse(userData));
+        if (token && user) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         }
         setLoading(false);
-    }, []);
+    }, [user]);
 
     const login = (token, userData) => {
         localStorage.setItem('token', token);

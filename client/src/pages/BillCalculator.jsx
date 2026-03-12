@@ -7,12 +7,7 @@ import api from '../api';
 const BillCalculator = () => {
     const [customer, setCustomer] = useState('');
     const [items, setItems] = useState([{ product_name: '', quantity: 1, rate: 0 }]);
-    const [total, setTotal] = useState(0);
-
-    useEffect(() => {
-        const newTotal = items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-        setTotal(newTotal);
-    }, [items]);
+    const total = items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
 
     const addItem = () => {
         setItems([...items, { product_name: '', quantity: 1, rate: 0 }]);

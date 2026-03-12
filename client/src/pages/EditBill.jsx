@@ -9,29 +9,25 @@ const EditBill = () => {
     const [loading, setLoading] = useState(true);
     const [customer, setCustomer] = useState('');
     const [items, setItems] = useState([]);
-    const [total, setTotal] = useState(0);
-
     useEffect(() => {
+        const fetchBillDetails = async () => {
+            try {
+                const res = await api.get(`/bills/${id}`);
+                setCustomer(res.data.customer_name);
+                setItems(res.data.items);
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+                alert('Failed to fetch bill details');
+                navigate('/dashboard');
+            }
+        };
         fetchBillDetails();
-    }, [id]);
+    }, [id, navigate]);
 
-    useEffect(() => {
-        const newTotal = items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-        setTotal(newTotal);
-    }, [items]);
+    const total = items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
 
-    const fetchBillDetails = async () => {
-        try {
-            const res = await api.get(`/bills/${id}`);
-            setCustomer(res.data.customer_name);
-            setItems(res.data.items);
-            setLoading(false);
-        } catch (err) {
-            console.error(err);
-            alert('Failed to fetch bill details');
-            navigate('/dashboard');
-        }
-    };
+
 
     const addItem = () => {
         setItems([...items, { product_name: '', quantity: 1, rate: 0 }]);

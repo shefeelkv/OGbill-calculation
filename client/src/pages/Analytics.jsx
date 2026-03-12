@@ -27,18 +27,6 @@ const Analytics = () => {
         ],
     };
 
-    const countData = {
-        labels: ['Total Bills'],
-        datasets: [
-            {
-                label: 'Count',
-                data: [data.totalBills],
-                backgroundColor: ['rgba(245, 158, 11, 0.5)'],
-                borderColor: ['rgb(245, 158, 11)'],
-                borderWidth: 1,
-            },
-        ],
-    };
 
     return (
         <div className="space-y-8">

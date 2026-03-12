@@ -5,12 +5,7 @@ import api from '../api';
 const Notepad = () => {
     const [title, setTitle] = useState('');
     const [items, setItems] = useState([{ item_name: '', price: 0 }]);
-    const [total, setTotal] = useState(0);
-
-    useEffect(() => {
-        const newTotal = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
-        setTotal(newTotal);
-    }, [items]);
+    const total = items.reduce((sum, item) => sum + parseFloat(item.price), 0);
 
     const addItem = () => {
         setItems([...items, { item_name: '', price: 0 }]);
