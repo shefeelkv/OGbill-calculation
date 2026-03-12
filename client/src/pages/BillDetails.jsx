@@ -32,7 +32,7 @@ const BillDetails = () => {
             try {
                 await api.delete(`/bills/${id}`);
                 navigate('/dashboard');
-            } catch (err) {
+            } catch {
                 alert('Failed to delete bill');
             }
         }

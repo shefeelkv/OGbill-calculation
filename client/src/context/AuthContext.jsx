@@ -1,16 +1,15 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { AuthContext } from './AuthContextInstance';
+export { AuthContext };
 
-export const AuthContext = createContext();
-
-// eslint-disable-next-line react-refresh/only-export-components
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
         const userData = localStorage.getItem('user');
         return userData ? JSON.parse(userData) : null;
     });
-    const [loading, setLoading] = useState(true);
+    const loading = false;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,7 +17,6 @@ export const AuthProvider = ({ children }) => {
         if (token && user) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         }
-        setLoading(false);
     }, [user]);
 
     const login = (token, userData) => {

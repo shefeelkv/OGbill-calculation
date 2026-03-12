@@ -14,8 +14,7 @@ const NoteDetails = () => {
             try {
                 const res = await api.get(`/notes/${id}`);
                 setNote(res.data);
-            } catch (error) {
-                console.error(error);
+            } catch {
                 alert('Failed to load note details');
                 navigate('/dashboard');
             } finally {
@@ -30,7 +29,7 @@ const NoteDetails = () => {
             try {
                 await api.delete(`/notes/${id}`);
                 navigate('/dashboard');
-            } catch (error) {
+            } catch {
                 alert('Failed to delete note');
             }
         }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2, Save, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
