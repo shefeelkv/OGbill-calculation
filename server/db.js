@@ -8,7 +8,7 @@ let db;
 let pgPool;
 
 if (isPostgres) {
-    console.log('Using PostgreSQL database.');
+    console.log('--- DATABASE DETECTION: PostgreSQL detected via environment variables ---');
     pgPool = new Pool({
         connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
         ssl: {
@@ -16,7 +16,8 @@ if (isPostgres) {
         }
     });
 } else {
-    console.log('Using SQLite database.');
+    console.log('--- DATABASE DETECTION: No Postgres variables found. Falling back to SQLite. ---');
+    console.log('Note: SQLite is read-only on Vercel. Please check your POSTGRES_URL environment variable.');
     const dbPath = path.resolve(__dirname, 'database.sqlite');
     db = new sqlite3.Database(dbPath, (err) => {
         if (err) {
