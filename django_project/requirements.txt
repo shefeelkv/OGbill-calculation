@@ -1,4 +1,4 @@
-﻿asgiref==3.8.1
+asgiref==3.8.1
 colorama==0.4.6
 distlib==0.3.9
 Django==5.1.4
@@ -13,3 +13,5 @@ sqlparse==0.5.3
 typing_extensions==4.12.2
 tzdata==2024.2
 virtualenv==20.31.2
+psycopg2-binary
+dj-database-url
