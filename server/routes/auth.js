@@ -28,7 +28,10 @@ router.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Insert User
-        const result = await db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
+        const insertSql = isPostgres 
+            ? 'INSERT INTO users (username, password) VALUES (?, ?) RETURNING id'
+            : 'INSERT INTO users (username, password) VALUES (?, ?)';
+        const result = await db.run(insertSql, [username, hashedPassword]);
         console.log('Insert result:', result); // LOGGING
 
         res.status(201).json({ message: 'User registered successfully' });

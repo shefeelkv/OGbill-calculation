@@ -76,12 +76,25 @@ WSGI_APPLICATION = 'smart_slist.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+import dj_database_url
+import os
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=True if os.environ.get('POSTGRES_URL') else False
+    )
 }
+
+# Override with POSTGRES_URL if present (Vercel Postgres)
+if os.environ.get('POSTGRES_URL'):
+    DATABASES['default'] = dj_database_url.parse(os.environ.get('POSTGRES_URL'))
+    DATABASES['default']['CONN_MAX_AGE'] = 600
+    # Vercel Postgres requires SSL
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+elif os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
 # Password validation

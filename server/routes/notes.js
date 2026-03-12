@@ -44,13 +44,15 @@ router.post('/', authenticateToken, async (req, res) => {
     items.forEach(item => total_amount += parseFloat(item.price));
 
     try {
-        await db.run('BEGIN TRANSACTION');
+        const beginSql = isPostgres ? 'BEGIN' : 'BEGIN TRANSACTION';
+        await db.run(beginSql);
 
-        const result = await db.run(
-            'INSERT INTO notes (user_id, title, total_amount) VALUES (?, ?, ?)',
-            [req.user.id, title, total_amount]
-        );
-        const noteId = result.lastID;
+        const insertNoteSql = isPostgres
+            ? 'INSERT INTO notes (user_id, title, total_amount) VALUES (?, ?, ?) RETURNING id'
+            : 'INSERT INTO notes (user_id, title, total_amount) VALUES (?, ?, ?)';
+        
+        const result = await db.run(insertNoteSql, [req.user.id, title, total_amount]);
+        const noteId = result.id || result.lastID;
 
         for (const item of items) {
             await db.run(
@@ -94,7 +96,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
     items.forEach(item => total_amount += parseFloat(item.price));
 
     try {
-        await db.run('BEGIN TRANSACTION');
+        const beginSql = isPostgres ? 'BEGIN' : 'BEGIN TRANSACTION';
+        await db.run(beginSql);
 
         // Update Note
         const noteUpdateResult = await db.run(

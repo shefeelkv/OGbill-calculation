@@ -1,37 +1,70 @@
 const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 const path = require('path');
 require('dotenv').config();
 
-const dbPath = path.resolve(__dirname, 'database.sqlite');
+const isPostgres = !!process.env.POSTGRES_URL || !!process.env.DATABASE_URL;
+let db;
+let pgPool;
 
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error opening database', err.message);
+if (isPostgres) {
+    console.log('Using PostgreSQL database.');
+    pgPool = new Pool({
+        connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
+    });
+} else {
+    console.log('Using SQLite database.');
+    const dbPath = path.resolve(__dirname, 'database.sqlite');
+    db = new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+            console.error('Error opening database', err.message);
+        } else {
+            db.run('PRAGMA foreign_keys = ON');
+        }
+    });
+}
+
+// Helper to convert '?' placeholders to '$1, $2, ...' for Postgres
+const formatQuery = (sql) => {
+    if (!isPostgres) return sql;
+    let index = 1;
+    return sql.replace(/\?/g, () => `$${index++}`);
+};
+
+const query = async (sql, params = []) => {
+    if (isPostgres) {
+        const res = await pgPool.query(formatQuery(sql), params);
+        return res.rows;
     } else {
-        console.log('Connected to the SQLite database.');
-
-        // Enable foreign keys
-        db.run('PRAGMA foreign_keys = ON');
+        return new Promise((resolve, reject) => {
+            db.all(sql, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
     }
-});
-
-// Wrapper for async/await
-const query = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
 };
 
-const run = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function (err) {
-            if (err) reject(err);
-            else resolve({ id: this.lastID, changes: this.changes });
+const run = async (sql, params = []) => {
+    if (isPostgres) {
+        // Postgres returns result, we try to mimic sqlite result for lastID/changes
+        const res = await pgPool.query(formatQuery(sql), params);
+        return { 
+            id: res.rows[0]?.id || null, 
+            lastID: res.rows[0]?.id || null, 
+            changes: res.rowCount 
+        };
+    } else {
+        return new Promise((resolve, reject) => {
+            db.run(sql, params, function (err) {
+                if (err) reject(err);
+                else resolve({ id: this.lastID, lastID: this.lastID, changes: this.changes });
+            });
         });
-    });
+    }
 };
 
-module.exports = { query, run, db };
+module.exports = { query, run, db, isPostgres };

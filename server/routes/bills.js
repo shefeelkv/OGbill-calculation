@@ -46,13 +46,15 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     try {
-        await db.run('BEGIN TRANSACTION');
+        const beginSql = isPostgres ? 'BEGIN' : 'BEGIN TRANSACTION';
+        await db.run(beginSql);
 
-        const result = await db.run(
-            'INSERT INTO bills (user_id, customer_name, total_amount) VALUES (?, ?, ?)',
-            [req.user.id, customer_name, total_amount]
-        );
-        const billId = result.lastID; // sqlite3 returns lastID on 'run' result
+        const insertBillSql = isPostgres
+            ? 'INSERT INTO bills (user_id, customer_name, total_amount) VALUES (?, ?, ?) RETURNING id'
+            : 'INSERT INTO bills (user_id, customer_name, total_amount) VALUES (?, ?, ?)';
+        
+        const result = await db.run(insertBillSql, [req.user.id, customer_name, total_amount]);
+        const billId = result.id || result.lastID;
 
         for (const item of items) {
             const amount = item.quantity * item.rate;
@@ -98,7 +100,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
     });
 
     try {
-        await db.run('BEGIN TRANSACTION');
+        const beginSql = isPostgres ? 'BEGIN' : 'BEGIN TRANSACTION';
+        await db.run(beginSql);
 
         // Update Bill
         const billUpdateResult = await db.run(

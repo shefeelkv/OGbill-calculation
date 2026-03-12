@@ -17,11 +17,66 @@ const billRoutes = require('./routes/bills');
 const noteRoutes = require('./routes/notes');
 const analyticsRoutes = require('./routes/analytics');
 const authRoutes = require('./routes/auth');
+const { query, isPostgres } = require('./db');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/bills', billRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/analytics', analyticsRoutes);
+
+// Database Initialization
+const initDb = async () => {
+    try {
+        const schema = [
+            `CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                is_admin BOOLEAN DEFAULT FALSE
+            )`,
+            `CREATE TABLE IF NOT EXISTS bills (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER,
+                customer_name TEXT,
+                total_amount REAL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS bill_items (
+                id SERIAL PRIMARY KEY,
+                bill_id INTEGER,
+                product_name TEXT,
+                quantity INTEGER,
+                rate REAL,
+                amount REAL
+            )`,
+            `CREATE TABLE IF NOT EXISTS notes (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER,
+                title TEXT,
+                total_amount REAL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )`,
+            `CREATE TABLE IF NOT EXISTS note_items (
+                id SERIAL PRIMARY KEY,
+                note_id INTEGER,
+                item_name TEXT,
+                price REAL
+            )`
+        ];
+        
+        if (isPostgres) {
+            console.log('Initializing PostgreSQL schema...');
+            for (const sql of schema) {
+                await query(sql);
+            }
+            console.log('PostgreSQL schema initialized.');
+        }
+    } catch (err) {
+        console.error('Database initialization failed:', err);
+    }
+};
+
+initDb();
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
